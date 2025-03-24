@@ -130,7 +130,9 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p>Get personalized health suggestions based on your data.</p>
-            <Button className="mt-4" variant="outline" disabled>Coming Soon</Button>
+            <Link href="/dashboard/health-suggestions">
+              <Button className="mt-4" variant="outline">Health Suggestions</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

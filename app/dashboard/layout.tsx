@@ -123,6 +123,11 @@ export default function DashboardLayout({
         },
       ],
     },
+    {
+      name: "Health Suggestions",
+      href: "/dashboard/health-suggestions",
+      icon: <Heart className="size-4" />,
+    },
   ];
 
   const renderNavItems = (items: NavItem[], level = 0) => {
