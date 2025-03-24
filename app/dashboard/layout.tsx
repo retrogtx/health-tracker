@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { 
   LayoutDashboard, 
@@ -32,7 +31,6 @@ import {
   Salad, 
   Dumbbell, 
   ChevronRight, 
-  BarChart4, 
   Heart, 
   Bell, 
   Menu, 
