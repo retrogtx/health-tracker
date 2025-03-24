@@ -46,14 +46,14 @@ export default function Home() {
       role: "Fitness Enthusiast",
     },
     {
-      quote: "The insights provided by Health Tracker have helped me understand my body better than ever before.",
-      author: "Michael T.",
-      role: "Marathon Runner",
+      quote: "Lowkey becoming the greatest of all time.",
+      author: "Gurjaan D.",
+      role: "Football Player",
     },
     {
-      quote: "As a nutritionist, I recommend Health Tracker to all my clients. It's comprehensive yet simple to use.",
-      author: "Dr. Lisa M.",
-      role: "Nutritionist",
+      quote: "Its alright, I guess.",
+      author: "Amrit",
+      role: "Unemployed",
     },
   ];
 

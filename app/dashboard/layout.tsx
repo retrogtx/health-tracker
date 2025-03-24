@@ -38,6 +38,23 @@ import {
   LogOut
 } from "lucide-react";
 
+interface BaseNavItem {
+  name: string;
+  icon?: React.ReactNode;
+}
+
+interface NavItemWithChildren extends BaseNavItem {
+  children: NavItem[];
+  href?: never;
+}
+
+interface NavItemWithHref extends BaseNavItem {
+  href: string;
+  children?: never;
+}
+
+type NavItem = NavItemWithChildren | NavItemWithHref;
+
 export default function DashboardLayout({
   children,
 }: {
@@ -101,7 +118,7 @@ export default function DashboardLayout({
     },
   ];
 
-  const renderNavItems = (items: any[], level = 0) => {
+  const renderNavItems = (items: NavItem[], level = 0) => {
     return items.map((item, index) => {
       if (item.children) {
         return (
