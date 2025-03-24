@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { signOut } from "@/app/auth";
+import { signOut as authSignOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -27,7 +27,7 @@ export default function DashboardLayout({
     try {
       setIsLoggingOut(true);
       toast.info("Logging out...");
-      await signOut();
+      await authSignOut();
       router.push("/");
     } catch (error) {
       console.error("Error during logout:", error);
