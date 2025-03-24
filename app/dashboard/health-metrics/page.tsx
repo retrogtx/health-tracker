@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -24,6 +24,7 @@ type HealthMetricFormValues = z.infer<typeof healthMetricSchema>;
 
 export default function HealthMetricsPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [pastEntries, setPastEntries] = useState<any[]>([]);
@@ -41,7 +42,8 @@ export default function HealthMetricsPage() {
 
   useEffect(() => {
     async function fetchHealthMetrics() {
-      const session = await auth();
+      if (status === "loading") return;
+      
       if (!session) {
         router.push("/login");
         return;
@@ -64,7 +66,7 @@ export default function HealthMetricsPage() {
     }
 
     fetchHealthMetrics();
-  }, [router]);
+  }, [router, session, status]);
 
   async function onSubmit(values: HealthMetricFormValues) {
     setIsSaving(true);

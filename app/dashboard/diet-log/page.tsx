@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -26,6 +26,7 @@ type DietLogFormValues = z.infer<typeof dietLogSchema>;
 
 export default function DietLogPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [pastEntries, setPastEntries] = useState<any[]>([]);
@@ -43,7 +44,8 @@ export default function DietLogPage() {
 
   useEffect(() => {
     async function fetchDietLogs() {
-      const session = await auth();
+      if (status === "loading") return;
+      
       if (!session) {
         router.push("/login");
         return;
@@ -66,7 +68,7 @@ export default function DietLogPage() {
     }
 
     fetchDietLogs();
-  }, [router]);
+  }, [router, session, status]);
 
   async function onSubmit(values: DietLogFormValues) {
     setIsSaving(true);

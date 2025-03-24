@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { toast } from "sonner";
 
 const workoutTypes = [
   "Cardio",
@@ -36,7 +37,9 @@ type WorkoutLogFormValues = z.infer<typeof workoutLogSchema>;
 
 export default function WorkoutLogPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [pastEntries, setPastEntries] = useState<any[]>([]);
   
   const form = useForm<WorkoutLogFormValues>({
@@ -49,37 +52,60 @@ export default function WorkoutLogPage() {
   });
 
   useEffect(() => {
-    async function checkAuth() {
-      const session = await auth();
+    async function fetchWorkoutLogs() {
+      if (status === "loading") return;
+      
       if (!session) {
         router.push("/login");
-      } else {
-        // TODO: Fetch past workout log entries
-        // For now, use mock data
-        setPastEntries([
-          { id: '1', dateLogged: new Date().toLocaleDateString(), workoutType: 'Cardio', duration: 30, caloriesBurned: 320 },
-          { id: '2', dateLogged: new Date(Date.now() - 86400000).toLocaleDateString(), workoutType: 'Strength Training', duration: 45, caloriesBurned: 280 }
-        ]);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/workout-log');
+        if (!response.ok) {
+          throw new Error('Failed to fetch workout logs');
+        }
+        
+        const logs = await response.json();
+        setPastEntries(logs);
+      } catch (error) {
+        console.error("Error fetching workout logs:", error);
+        toast.error("Failed to load workout logs");
+      } finally {
         setIsLoading(false);
       }
     }
 
-    checkAuth();
-  }, [router]);
+    fetchWorkoutLogs();
+  }, [router, session, status]);
 
-  function onSubmit(values: WorkoutLogFormValues) {
-    // TODO: Save workout log data to database
-    console.log(values);
-    // Add to past entries for UI feedback
-    setPastEntries([
-      {
-        id: String(Date.now()),
-        dateLogged: new Date().toLocaleDateString(),
-        ...values
-      },
-      ...pastEntries
-    ]);
-    form.reset({ workoutType: "Cardio", duration: 30, caloriesBurned: undefined });
+  async function onSubmit(values: WorkoutLogFormValues) {
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/workout-log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save workout log');
+      }
+
+      const newWorkoutLog = await response.json();
+      
+      // Add to past entries for UI feedback
+      setPastEntries([newWorkoutLog, ...pastEntries]);
+      form.reset({ workoutType: "Cardio", duration: 30, caloriesBurned: undefined });
+      toast.success("Workout log saved successfully");
+    } catch (error) {
+      console.error("Error saving workout log:", error);
+      toast.error("Failed to save workout log");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   if (isLoading) {
@@ -89,6 +115,12 @@ export default function WorkoutLogPage() {
       </div>
     );
   }
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -165,7 +197,9 @@ export default function WorkoutLogPage() {
                 />
               </div>
               
-              <Button type="submit" className="w-full md:w-auto">Log Workout</Button>
+              <Button type="submit" className="w-full md:w-auto" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Log Workout"}
+              </Button>
             </form>
           </Form>
         </CardContent>
@@ -193,7 +227,7 @@ export default function WorkoutLogPage() {
                 <tbody>
                   {pastEntries.map(entry => (
                     <tr key={entry.id} className="border-b">
-                      <td className="px-4 py-2">{entry.dateLogged}</td>
+                      <td className="px-4 py-2">{formatDate(entry.dateLogged)}</td>
                       <td className="px-4 py-2">{entry.workoutType}</td>
                       <td className="px-4 py-2">{entry.duration}</td>
                       <td className="px-4 py-2">{entry.caloriesBurned || '-'}</td>

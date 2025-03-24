@@ -2,34 +2,58 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function checkAuth() {
-      const session = await auth();
-      if (!session) {
+      if (status === "loading") return;
+
+      try {
+        if (!session) {
+          router.push("/login");
+          return;
+        }
+        
+        if (session?.user?.name && isMounted) {
+          setUserName(session.user.name);
+        }
+      } catch (error) {
+        console.error("Authentication error:", error);
+        toast.error("Authentication failed. Please log in again.");
         router.push("/login");
-      } else if (session?.user?.name) {
-        setUserName(session.user.name);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-      setIsLoading(false);
     }
 
     checkAuth();
-  }, [router]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router, session, status]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p>Loading dashboard...</p>
+        </div>
       </div>
     );
   }

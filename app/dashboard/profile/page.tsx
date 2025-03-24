@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -26,6 +26,7 @@ type UserProfileFormValues = z.infer<typeof userProfileSchema>;
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -44,7 +45,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchUserProfile() {
-      const session = await auth();
+      if (status === "loading") return;
+      
       if (!session) {
         router.push("/login");
         return;

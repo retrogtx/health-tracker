@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { signOut } from "@/app/auth";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function DashboardLayout({
   children,
@@ -15,10 +16,24 @@ export default function DashboardLayout({
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // Show a welcome toast when the dashboard is first loaded
+  useEffect(() => {
+    if (pathname === "/dashboard") {
+      toast.success("Welcome to your Health Tracker dashboard!");
+    }
+  }, [pathname]);
+
   const handleLogout = async () => {
-    setIsLoggingOut(true);
-    await signOut();
-    router.push("/");
+    try {
+      setIsLoggingOut(true);
+      toast.info("Logging out...");
+      await signOut();
+      router.push("/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Logout failed. Please try again.");
+      setIsLoggingOut(false);
+    }
   };
 
   const navItems = [
