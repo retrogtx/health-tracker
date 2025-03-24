@@ -5,17 +5,19 @@ import { compare } from "bcryptjs";
 import { type DefaultSession } from "next-auth";
 import { authConfig } from "../auth.config";
 
-// Extend the User type to include username
+// Extend the User type to include username, name, and email
 declare module "next-auth" {
   interface User {
     username: string;
     name?: string | null;
+    email?: string | null;
   }
   
   interface Session extends DefaultSession {
     user: {
       id: string;
       username: string;
+      email?: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -61,6 +63,7 @@ export const {
           id: user.id,
           username: user.username,
           name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
         };
       }
     }),
@@ -74,6 +77,7 @@ export const {
       if (user) {
         token.id = user.id;
         token.username = user.username;
+        token.email = user.email;
       }
       return token;
     },
@@ -81,6 +85,7 @@ export const {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
+        session.user.email = token.email as string;
       }
       return session;
     },

@@ -120,7 +120,9 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p>View your health progress and statistics over time.</p>
-            <Button className="mt-4" variant="outline" disabled>Coming Soon</Button>
+            <Link href="/dashboard/progress">
+              <Button className="mt-4" variant="outline">View Progress</Button>
+            </Link>
           </CardContent>
         </Card>
         

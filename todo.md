@@ -16,6 +16,8 @@ do the authentication with auth.js
 
 make the app look very attractive.
 
+the progress & statistics page should basically compile all the data from the database and display it in a nice way. download the data in form of a pdf.
+
 use shadcn/ui for the components.
 use it completely for the sign in and sign up page.
 everything frontend should be done with shadcn/ui, that should be your first thought.
