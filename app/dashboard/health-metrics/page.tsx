@@ -12,6 +12,17 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
 
+// Define a type for the health metric entry
+type HealthMetricEntry = {
+  id: string;
+  heartRate: number | null;
+  bloodPressure: string | null;
+  sleepHours: number | null;
+  weight: number | null;
+  bmi: number | null;
+  dateRecorded: string;
+};
+
 const healthMetricSchema = z.object({
   heartRate: z.number().min(40, "Heart rate should be at least 40").max(200, "Heart rate should be at most 200").optional(),
   bloodPressure: z.string().regex(/^\d{2,3}\/\d{2,3}$/, "Blood pressure should be in format SYS/DIA, e.g. 120/80").optional(),
@@ -27,7 +38,7 @@ export default function HealthMetricsPage() {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [pastEntries, setPastEntries] = useState<any[]>([]);
+  const [pastEntries, setPastEntries] = useState<HealthMetricEntry[]>([]);
   
   const form = useForm<HealthMetricFormValues>({
     resolver: zodResolver(healthMetricSchema),

@@ -36,12 +36,6 @@ export default function DashboardLayout({
     }
   };
 
-  const navItems = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Profile", path: "/dashboard/profile" },
-    { name: "Health Logs", path: "/dashboard/health-metrics" },
-  ];
-
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}

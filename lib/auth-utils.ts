@@ -1,14 +1,11 @@
-import { PrismaClient } from "@prisma/client";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
-
-const prisma = new PrismaClient();
 
 /**
  * Helper function to check if a user is authenticated and return their session,
  * or return an unauthorized response if not authenticated
  */
-export async function getAuthenticatedUser(req: NextRequest) {
+export async function getAuthenticatedUser() {
   const session = await auth();
   
   if (!session || !session.user) {

@@ -5,12 +5,21 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
+
+// Define a type for the workout log entry
+type WorkoutLogEntry = {
+  id: string;
+  workoutType: string;
+  duration: number;
+  caloriesBurned: number | null;
+  dateLogged: string;
+};
 
 const workoutTypes = [
   "Cardio",
@@ -40,7 +49,7 @@ export default function WorkoutLogPage() {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [pastEntries, setPastEntries] = useState<any[]>([]);
+  const [pastEntries, setPastEntries] = useState<WorkoutLogEntry[]>([]);
   
   const form = useForm<WorkoutLogFormValues>({
     resolver: zodResolver(workoutLogSchema),

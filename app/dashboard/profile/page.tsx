@@ -79,7 +79,7 @@ export default function ProfilePage() {
     }
 
     fetchUserProfile();
-  }, [router, form]);
+  }, [router, form, session, status]);
 
   async function onSubmit(values: UserProfileFormValues) {
     setIsSaving(true);

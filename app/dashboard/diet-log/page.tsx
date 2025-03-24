@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -24,12 +24,23 @@ const dietLogSchema = z.object({
 
 type DietLogFormValues = z.infer<typeof dietLogSchema>;
 
+// Define a type for the diet log entry
+type DietLogEntry = {
+  id: string;
+  mealType: string;
+  calories: number | null;
+  protein: number | null;
+  carbs: number | null;
+  fats: number | null;
+  dateLogged: string;
+};
+
 export default function DietLogPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [pastEntries, setPastEntries] = useState<any[]>([]);
+  const [pastEntries, setPastEntries] = useState<DietLogEntry[]>([]);
   
   const form = useForm<DietLogFormValues>({
     resolver: zodResolver(dietLogSchema),

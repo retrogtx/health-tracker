@@ -5,7 +5,7 @@ import { auth } from "@/app/auth";
 const prisma = new PrismaClient();
 
 // GET diet logs for the authenticated user
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await auth();
   
   if (!session || !session.user) {
