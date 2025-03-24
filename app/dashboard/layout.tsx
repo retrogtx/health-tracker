@@ -67,6 +67,10 @@ export default function DashboardLayout({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   
+  useEffect(() => {
+    console.log("Session data:", session);
+  }, [session]);
+
   // Show a welcome toast when the dashboard is first loaded
   useEffect(() => {
     if (pathname === "/dashboard") {
@@ -171,6 +175,12 @@ export default function DashboardLayout({
     });
   };
 
+  const getInitial = () => {
+    const displayName = session?.user?.name?.split(' ')[0] || session?.user?.username;
+    console.log("Display name:", displayName);
+    return displayName ? displayName[0].toUpperCase() : "U";
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
@@ -198,7 +208,7 @@ export default function DashboardLayout({
                 <Button variant="ghost" className="w-full flex items-center justify-start gap-2 px-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="/images/avatar-placeholder.svg" alt={session?.user?.name || "User"} />
-                    <AvatarFallback>{session?.user?.name?.[0] || "U"}</AvatarFallback>
+                    <AvatarFallback className="bg-primary" />
                   </Avatar>
                   <div className="flex flex-col items-start text-sm">
                     <p className="font-medium text-foreground">{session?.user?.name || "Loading..."}</p>
@@ -288,8 +298,8 @@ export default function DashboardLayout({
             <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
           </Button>
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/images/avatar-placeholder.svg" alt="User" />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage src="/images/avatar-placeholder.svg" alt={session?.user?.name || "User"} />
+            <AvatarFallback className="bg-primary" />
           </Avatar>
         </div>
       </div>
