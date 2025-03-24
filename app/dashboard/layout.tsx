@@ -5,7 +5,40 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { signOut as authSignOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger 
+} from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { 
+  LayoutDashboard, 
+  UserCircle, 
+  LineChart, 
+  Salad, 
+  Dumbbell, 
+  ChevronRight, 
+  BarChart4, 
+  Heart, 
+  Bell, 
+  Menu, 
+  Settings, 
+  LogOut
+} from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -15,7 +48,8 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
   // Show a welcome toast when the dashboard is first loaded
   useEffect(() => {
     if (pathname === "/dashboard") {
@@ -36,101 +70,200 @@ export default function DashboardLayout({
     }
   };
 
-  return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-md flex flex-col">
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-bold">Health Tracker</h2>
-        </div>
-        <nav className="mt-6 flex-grow">
-          <ul>
-            <li className="mb-2">
-              <Link
-                href="/dashboard"
-                className={`block px-4 py-2 text-sm ${
-                  pathname === "/dashboard"
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                Dashboard
-              </Link>
-            </li>
-            <li className="mb-2">
-              <Link
-                href="/dashboard/profile"
-                className={`block px-4 py-2 text-sm ${
-                  pathname === "/dashboard/profile"
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                Profile
-              </Link>
-            </li>
-            <li className="mb-2">
-              <div className={`block px-4 py-2 text-sm text-gray-700 font-medium`}>
-                Health Logs
-              </div>
-              <ul className="ml-4">
-                <li className="mb-1">
-                  <Link
-                    href="/dashboard/health-metrics"
-                    className={`block px-4 py-2 text-sm ${
-                      pathname === "/dashboard/health-metrics"
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    Health Metrics
-                  </Link>
-                </li>
-                <li className="mb-1">
-                  <Link
-                    href="/dashboard/diet-log"
-                    className={`block px-4 py-2 text-sm ${
-                      pathname === "/dashboard/diet-log"
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    Diet Log
-                  </Link>
-                </li>
-                <li className="mb-1">
-                  <Link
-                    href="/dashboard/workout-log"
-                    className={`block px-4 py-2 text-sm ${
-                      pathname === "/dashboard/workout-log"
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    Workout Log
-                  </Link>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </nav>
-        <div className="p-4 border-t flex items-center">
-          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold mr-2">
-            N
+  const navItems = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: <LayoutDashboard className="size-4" />,
+    },
+    {
+      name: "Profile",
+      href: "/dashboard/profile",
+      icon: <UserCircle className="size-4" />,
+    },
+    {
+      name: "Health Logs",
+      children: [
+        {
+          name: "Health Metrics",
+          href: "/dashboard/health-metrics",
+          icon: <LineChart className="size-4" />,
+        },
+        {
+          name: "Diet Log",
+          href: "/dashboard/diet-log",
+          icon: <Salad className="size-4" />,
+        },
+        {
+          name: "Workout Log",
+          href: "/dashboard/workout-log",
+          icon: <Dumbbell className="size-4" />,
+        },
+      ],
+    },
+  ];
+
+  const renderNavItems = (items: any[], level = 0) => {
+    return items.map((item, index) => {
+      if (item.children) {
+        return (
+          <div key={index} className="space-y-1">
+            <div className={`px-3 py-2 text-sm font-medium ${level === 0 ? 'text-gray-500' : 'text-gray-400'}`}>
+              {item.name}
+            </div>
+            <div className="pl-4">
+              {renderNavItems(item.children, level + 1)}
+            </div>
           </div>
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            className="w-full text-left justify-start"
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut ? "Logging out..." : "Log out"}
+        );
+      }
+
+      const isActive = pathname === item.href;
+      
+      return (
+        <Link
+          key={index}
+          href={item.href}
+          className={`flex items-center gap-x-2 px-3 py-2 rounded-md text-sm ${
+            isActive
+              ? "bg-blue-50 text-blue-700 font-medium"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+          onClick={() => setIsMobileOpen(false)}
+        >
+          {item.icon}
+          <span>{item.name}</span>
+          {isActive && (
+            <div className="ml-auto">
+              <Badge variant="secondary" className="rounded-sm px-1 py-0">Active</Badge>
+            </div>
+          )}
+        </Link>
+      );
+    });
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
+        <div className="flex flex-col flex-grow bg-white shadow-sm border-r border-gray-200">
+          <div className="flex items-center h-16 px-4 border-b border-gray-200 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="bg-blue-500 text-white p-1 rounded">
+                <Heart className="size-5" />
+              </div>
+              <h2 className="text-lg font-semibold">Health Tracker</h2>
+            </div>
+          </div>
+          
+          <ScrollArea className="flex-1 py-4">
+            <nav className="space-y-1 px-2">
+              {renderNavItems(navItems)}
+            </nav>
+          </ScrollArea>
+          
+          <div className="p-4 border-t border-gray-200">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full flex items-center justify-start gap-2 px-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/images/avatar-placeholder.svg" alt="User" />
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-start text-sm">
+                    <p className="font-medium">User Account</p>
+                    <p className="text-gray-500 text-xs">user@example.com</p>
+                  </div>
+                  <ChevronRight className="ml-auto h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div className="md:hidden flex items-center h-16 px-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+        <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="mr-2">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-64">
+            <SheetHeader className="h-16 px-4 border-b flex items-center">
+              <SheetTitle className="flex items-center gap-2">
+                <div className="bg-blue-500 text-white p-1 rounded">
+                  <Heart className="size-5" />
+                </div>
+                <span>Health Tracker</span>
+              </SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="h-[calc(100vh-8rem)]">
+              <div className="py-4">
+                <nav className="space-y-1 px-2">
+                  {renderNavItems(navItems)}
+                </nav>
+              </div>
+            </ScrollArea>
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+              <Button
+                onClick={handleLogout} 
+                variant="ghost" 
+                className="w-full justify-start gap-2 px-2"
+                disabled={isLoggingOut}
+              >
+                <LogOut className="h-4 w-4" />
+                <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+        
+        <div className="flex items-center gap-2 flex-1">
+          <div className="bg-blue-500 text-white p-1 rounded">
+            <Heart className="size-5" />
+          </div>
+          <h2 className="text-lg font-semibold">Health Tracker</h2>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
           </Button>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src="/images/avatar-placeholder.svg" alt="User" />
+            <AvatarFallback>U</AvatarFallback>
+          </Avatar>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-auto p-4">{children}</div>
+      <div className="md:pl-64 flex flex-col flex-1">
+        <main className="flex-1 p-4 md:p-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 } 
