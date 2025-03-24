@@ -2,8 +2,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
   const features = [
@@ -36,24 +34,6 @@ export default function Home() {
       title: "Health Insights",
       description: "Get personalized insights based on your health data.",
       icon: "🧠",
-    },
-  ];
-
-  const testimonials = [
-    {
-      quote: "Health Tracker has completely transformed my life. Not fat anymore.",
-      author: "Sarah J.",
-      role: "Fitness Enthusiast",
-    },
-    {
-      quote: "Lowkey becoming the greatest of all time.",
-      author: "Gurjaan D.",
-      role: "Football Player",
-    },
-    {
-      quote: "Its alright, I guess.",
-      author: "Amrit",
-      role: "Unemployed",
     },
   ];
 
@@ -107,41 +87,6 @@ export default function Home() {
               </Card>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4 text-foreground">What Our Users Say</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover how Health Tracker has helped people achieve their health goals
-            </p>
-          </div>
-          
-          <Carousel className="max-w-4xl mx-auto">
-            <CarouselContent>
-              {testimonials.map((testimonial, index) => (
-                <CarouselItem key={index}>
-                  <Card className="mx-4">
-                    <CardContent className="pt-6">
-                      <p className="text-xl italic mb-6 text-foreground">&ldquo;{testimonial.quote}&rdquo;</p>
-                      <Separator className="my-4" />
-                      <div className="flex flex-col">
-                        <p className="font-semibold text-foreground">{testimonial.author}</p>
-                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="flex justify-center mt-8">
-              <CarouselPrevious className="mr-2 static translate-y-0" />
-              <CarouselNext className="ml-2 static translate-y-0" />
-            </div>
-          </Carousel>
         </div>
       </section>
 
