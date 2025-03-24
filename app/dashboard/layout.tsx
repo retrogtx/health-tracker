@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { signOut as authSignOut } from "next-auth/react";
+import { signOut as authSignOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { 
   Sheet, 
@@ -62,6 +62,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   
@@ -71,6 +72,12 @@ export default function DashboardLayout({
       toast.success("Welcome to your Health Tracker dashboard!");
     }
   }, [pathname]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
 
   const handleLogout = async () => {
     try {
@@ -183,12 +190,12 @@ export default function DashboardLayout({
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full flex items-center justify-start gap-2 px-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/images/avatar-placeholder.svg" alt="User" />
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarImage src="/images/avatar-placeholder.svg" alt={session?.user?.name || "User"} />
+                    <AvatarFallback>{session?.user?.name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start text-sm">
-                    <p className="font-medium">User Account</p>
-                    <p className="text-gray-500 text-xs">user@example.com</p>
+                    <p className="font-medium">{session?.user?.name || "Loading..."}</p>
+                    <p className="text-gray-500 text-xs">{session?.user?.email || session?.user?.username || "Loading..."}</p>
                   </div>
                   <ChevronRight className="ml-auto h-4 w-4" />
                 </Button>
@@ -196,13 +203,17 @@ export default function DashboardLayout({
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
