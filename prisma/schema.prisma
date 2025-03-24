@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String           @id @default(cuid())
+  username      String           @unique
+  password      String
+  email         String           @unique
+  firstName     String
+  lastName      String
+  age           Int?
+  gender        String?          // "Male", "Female", or "Other"
+  contact       String?          @unique
+  joinDate      DateTime         @default(now())
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  healthMetrics HealthMetric[]
+  dietLogs      DietLog[]
+  workoutLogs   WorkoutLog[]
+  suggestions   HealthSuggestion[]
+}
+
+model HealthMetric {
+  id             String            @id @default(cuid())
+  dateRecorded   DateTime          @default(now())
+  heartRate      Int?              // Between 40 and 200
+  bloodPressure  String?           // Format: "SYS/DIA" (e.g., "120/80")
+  sleepHours     Float?            // Between 0 and 24
+  weight         Float?            // Between 30 and 200
+  bmi            Float?            // Between 10 and 50
+  userId         String
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  suggestions    HealthSuggestion[]
+}
+
+model DietLog {
+  id           String            @id @default(cuid())
+  dateLogged   DateTime          @default(now())
+  mealType     String            // "Breakfast", "Lunch", "Dinner", or "Snack"
+  calories     Int?
+  protein      Float?
+  carbs        Float?
+  fats         Float?
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  suggestions  HealthSuggestion[]
+}
+
+model WorkoutLog {
+  id              String          @id @default(cuid())
+  dateLogged      DateTime        @default(now())
+  workoutType     String          // "Cardio", "Strength Training", "Yoga", etc.
+  duration        Int             // in minutes
+  caloriesBurned  Int?
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model HealthSuggestion {
+  id                    String        @id @default(cuid())
+  suggestionType        String        // "Diet", "Workout", or "Rest"
+  personalisedSuggestion String
+  dateIssued            DateTime      @default(now())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  healthMetricId        String?
+  healthMetric          HealthMetric? @relation(fields: [healthMetricId], references: [id], onDelete: SetNull)
+  dietLogId             String?
+  dietLog               DietLog?      @relation(fields: [dietLogId], references: [id], onDelete: SetNull)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+} 
