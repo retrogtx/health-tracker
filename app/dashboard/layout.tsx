@@ -37,6 +37,7 @@ import {
   Settings, 
   LogOut
 } from "lucide-react";
+import { ModeToggle } from "@/components/ui/toggle";
 
 interface BaseNavItem {
   name: string;
@@ -135,7 +136,7 @@ export default function DashboardLayout({
       if (item.children) {
         return (
           <div key={index} className="space-y-1">
-            <div className={`px-3 py-2 text-sm font-medium ${level === 0 ? 'text-gray-500' : 'text-gray-400'}`}>
+            <div className={`px-3 py-2 text-sm font-medium ${level === 0 ? 'text-muted-foreground' : 'text-muted-foreground/80'}`}>
               {item.name}
             </div>
             <div className="pl-4">
@@ -153,8 +154,8 @@ export default function DashboardLayout({
           href={item.href}
           className={`flex items-center gap-x-2 px-3 py-2 rounded-md text-sm ${
             isActive
-              ? "bg-blue-50 text-blue-700 font-medium"
-              : "text-gray-700 hover:bg-gray-100"
+              ? "bg-accent text-accent-foreground font-medium"
+              : "text-foreground hover:bg-accent/50"
           }`}
           onClick={() => setIsMobileOpen(false)}
         >
@@ -171,17 +172,18 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <div className="flex flex-col flex-grow bg-white shadow-sm border-r border-gray-200">
-          <div className="flex items-center h-16 px-4 border-b border-gray-200 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="bg-blue-500 text-white p-1 rounded">
+        <div className="flex flex-col flex-grow bg-background border-r">
+          <div className="flex items-center h-16 px-4 border-b flex-shrink-0">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="bg-primary text-primary-foreground p-1 rounded">
                 <Heart className="size-5" />
               </div>
-              <h2 className="text-lg font-semibold">Health Tracker</h2>
+              <h2 className="text-lg font-semibold text-foreground">Health Tracker</h2>
             </div>
+            <ModeToggle />
           </div>
           
           <ScrollArea className="flex-1 py-4">
@@ -190,7 +192,7 @@ export default function DashboardLayout({
             </nav>
           </ScrollArea>
           
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full flex items-center justify-start gap-2 px-2">
@@ -199,8 +201,8 @@ export default function DashboardLayout({
                     <AvatarFallback>{session?.user?.name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start text-sm">
-                    <p className="font-medium">{session?.user?.name || "Loading..."}</p>
-                    <p className="text-gray-500 text-xs">{session?.user?.email || session?.user?.username || "Loading..."}</p>
+                    <p className="font-medium text-foreground">{session?.user?.name || "Loading..."}</p>
+                    <p className="text-muted-foreground text-xs">{session?.user?.email || session?.user?.username || "Loading..."}</p>
                   </div>
                   <ChevronRight className="ml-auto h-4 w-4" />
                 </Button>
@@ -209,13 +211,13 @@ export default function DashboardLayout({
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/profile">
+                  <Link href="/dashboard/profile" className="flex items-center">
                     <UserCircle className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/profile">
+                  <Link href="/dashboard/profile" className="flex items-center">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </Link>
@@ -232,7 +234,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Mobile Sidebar */}
-      <div className="md:hidden flex items-center h-16 px-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+      <div className="md:hidden flex items-center h-16 px-4 border-b bg-background sticky top-0 z-10">
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="mr-2">
@@ -242,12 +244,15 @@ export default function DashboardLayout({
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
             <SheetHeader className="h-16 px-4 border-b flex items-center">
-              <SheetTitle className="flex items-center gap-2">
-                <div className="bg-blue-500 text-white p-1 rounded">
-                  <Heart className="size-5" />
-                </div>
-                <span>Health Tracker</span>
-              </SheetTitle>
+              <div className="flex items-center justify-between w-full">
+                <SheetTitle className="flex items-center gap-2">
+                  <div className="bg-primary text-primary-foreground p-1 rounded">
+                    <Heart className="size-5" />
+                  </div>
+                  <span>Health Tracker</span>
+                </SheetTitle>
+                <ModeToggle />
+              </div>
             </SheetHeader>
             <ScrollArea className="h-[calc(100vh-8rem)]">
               <div className="py-4">
@@ -256,7 +261,7 @@ export default function DashboardLayout({
                 </nav>
               </div>
             </ScrollArea>
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
               <Button
                 onClick={handleLogout} 
                 variant="ghost" 
@@ -271,16 +276,16 @@ export default function DashboardLayout({
         </Sheet>
         
         <div className="flex items-center gap-2 flex-1">
-          <div className="bg-blue-500 text-white p-1 rounded">
+          <div className="bg-primary text-primary-foreground p-1 rounded">
             <Heart className="size-5" />
           </div>
-          <h2 className="text-lg font-semibold">Health Tracker</h2>
+          <h2 className="text-lg font-semibold text-foreground">Health Tracker</h2>
         </div>
         
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
           </Button>
           <Avatar className="h-8 w-8">
             <AvatarImage src="/images/avatar-placeholder.svg" alt="User" />

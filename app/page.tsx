@@ -58,16 +58,16 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-background to-background/50">
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 bg-[url('/images/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+        <div className="absolute inset-0 bg-[url('/images/grid.svg')] bg-center [mask-image:linear-gradient(180deg,var(--background),transparent)]"></div>
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           <Badge className="mb-4 py-1.5" variant="outline">Your Health Journey Starts Here</Badge>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900 mb-6">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground mb-6">
             Health Tracker
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-12">
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12">
             Monitor your health journey with our comprehensive tracking tools and get personalized insights to improve your wellbeing.
           </p>
           
@@ -83,11 +83,11 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Comprehensive Health Tracking</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4 text-foreground">Comprehensive Health Tracking</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Everything you need to monitor and improve your health in one place
             </p>
           </div>
@@ -111,11 +111,11 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">What Our Users Say</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4 text-foreground">What Our Users Say</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Discover how Health Tracker has helped people achieve their health goals
             </p>
           </div>
@@ -124,13 +124,13 @@ export default function Home() {
             <CarouselContent>
               {testimonials.map((testimonial, index) => (
                 <CarouselItem key={index}>
-                  <Card className="mx-4 bg-white">
+                  <Card className="mx-4">
                     <CardContent className="pt-6">
-                      <p className="text-xl italic mb-6">&ldquo;{testimonial.quote}&rdquo;</p>
+                      <p className="text-xl italic mb-6 text-foreground">&ldquo;{testimonial.quote}&rdquo;</p>
                       <Separator className="my-4" />
                       <div className="flex flex-col">
-                        <p className="font-semibold">{testimonial.author}</p>
-                        <p className="text-sm text-gray-500">{testimonial.role}</p>
+                        <p className="font-semibold text-foreground">{testimonial.author}</p>
+                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -146,10 +146,10 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blue-600 text-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-primary">
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Transform Your Health?</h2>
-          <p className="text-xl mb-8 opacity-90">
+          <h2 className="text-3xl font-bold mb-6 text-primary-foreground">Ready to Transform Your Health?</h2>
+          <p className="text-xl mb-8 text-primary-foreground/90">
             Join thousands of users who have improved their health with our tracking tools
           </p>
           <Button asChild size="lg" variant="secondary" className="px-8 text-base">
