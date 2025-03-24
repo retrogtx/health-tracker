@@ -41,7 +41,7 @@ export default function Home() {
 
   const testimonials = [
     {
-      quote: "Health Tracker has completely transformed my life. Not a fat fuck anymore.",
+      quote: "Health Tracker has completely transformed my life. Not fat anymore.",
       author: "Sarah J.",
       role: "Fitness Enthusiast",
     },

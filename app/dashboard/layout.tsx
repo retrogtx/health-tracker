@@ -175,11 +175,6 @@ export default function DashboardLayout({
     });
   };
 
-  const getInitial = () => {
-    const displayName = session?.user?.name?.split(' ')[0] || session?.user?.username;
-    console.log("Display name:", displayName);
-    return displayName ? displayName[0].toUpperCase() : "U";
-  };
 
   return (
     <div className="flex h-screen bg-background">

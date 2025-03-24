@@ -221,6 +221,8 @@ export default function ProgressPage() {
         const weightChartContainer = document.createElement('div');
         weightChartContainer.style.width = '400px';
         weightChartContainer.style.height = '250px';
+        weightChartContainer.style.position = 'absolute';
+        weightChartContainer.style.left = '-9999px';
         document.body.appendChild(weightChartContainer);
         
         // Create and render the weight chart
@@ -241,19 +243,30 @@ export default function ProgressPage() {
         );
         
         // Wait for the chart to render
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Convert the chart to canvas
-        const weightCanvas = await html2canvas(weightChartContainer);
+        const weightCanvas = await html2canvas(weightChartContainer, {
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
         const weightImgData = weightCanvas.toDataURL("image/png");
         
         // Add the chart to PDF
         pdf.addImage(weightImgData, "PNG", margin, currentY, contentWidth / 2 - 10, 100);
         
+        // Clean up
+        weightChartRoot.unmount();
+        document.body.removeChild(weightChartContainer);
+        
         // Create a temporary container for the BMI chart
         const bmiChartContainer = document.createElement('div');
         bmiChartContainer.style.width = '400px';
         bmiChartContainer.style.height = '250px';
+        bmiChartContainer.style.position = 'absolute';
+        bmiChartContainer.style.left = '-9999px';
         document.body.appendChild(bmiChartContainer);
         
         // Create and render the BMI chart
@@ -274,18 +287,23 @@ export default function ProgressPage() {
         );
         
         // Wait for the chart to render
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Convert the chart to canvas
-        const bmiCanvas = await html2canvas(bmiChartContainer);
+        const bmiCanvas = await html2canvas(bmiChartContainer, {
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
         const bmiImgData = bmiCanvas.toDataURL("image/png");
         
         // Add the chart to PDF
         pdf.addImage(bmiImgData, "PNG", margin + contentWidth / 2 + 10, currentY, contentWidth / 2 - 10, 100);
         
         // Clean up
-        weightChartRoot.unmount();
         bmiChartRoot.unmount();
+        document.body.removeChild(bmiChartContainer);
         
         currentY += 120;
       }
@@ -296,6 +314,8 @@ export default function ProgressPage() {
         const durationChartContainer = document.createElement('div');
         durationChartContainer.style.width = '400px';
         durationChartContainer.style.height = '250px';
+        durationChartContainer.style.position = 'absolute';
+        durationChartContainer.style.left = '-9999px';
         document.body.appendChild(durationChartContainer);
         
         // Create and render the duration chart
@@ -316,19 +336,30 @@ export default function ProgressPage() {
         );
         
         // Wait for the chart to render
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Convert the chart to canvas
-        const durationCanvas = await html2canvas(durationChartContainer);
+        const durationCanvas = await html2canvas(durationChartContainer, {
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
         const durationImgData = durationCanvas.toDataURL("image/png");
         
         // Add the chart to PDF
         pdf.addImage(durationImgData, "PNG", margin, currentY, contentWidth / 2 - 10, 100);
         
+        // Clean up
+        durationChartRoot.unmount();
+        document.body.removeChild(durationChartContainer);
+        
         // Create a temporary container for the calories chart
         const caloriesChartContainer = document.createElement('div');
         caloriesChartContainer.style.width = '400px';
         caloriesChartContainer.style.height = '250px';
+        caloriesChartContainer.style.position = 'absolute';
+        caloriesChartContainer.style.left = '-9999px';
         document.body.appendChild(caloriesChartContainer);
         
         // Create and render the calories chart
@@ -349,18 +380,23 @@ export default function ProgressPage() {
         );
         
         // Wait for the chart to render
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Convert the chart to canvas
-        const caloriesCanvas = await html2canvas(caloriesChartContainer);
+        const caloriesCanvas = await html2canvas(caloriesChartContainer, {
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
         const caloriesImgData = caloriesCanvas.toDataURL("image/png");
         
         // Add the chart to PDF
         pdf.addImage(caloriesImgData, "PNG", margin + contentWidth / 2 + 10, currentY, contentWidth / 2 - 10, 100);
         
         // Clean up
-        durationChartRoot.unmount();
         caloriesChartRoot.unmount();
+        document.body.removeChild(caloriesChartContainer);
         
         currentY += 120;
       }
@@ -371,6 +407,8 @@ export default function ProgressPage() {
         const dietCaloriesChartContainer = document.createElement('div');
         dietCaloriesChartContainer.style.width = '400px';
         dietCaloriesChartContainer.style.height = '250px';
+        dietCaloriesChartContainer.style.position = 'absolute';
+        dietCaloriesChartContainer.style.left = '-9999px';
         document.body.appendChild(dietCaloriesChartContainer);
         
         // Create and render the calories chart
@@ -391,19 +429,30 @@ export default function ProgressPage() {
         );
         
         // Wait for the chart to render
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Convert the chart to canvas
-        const dietCaloriesCanvas = await html2canvas(dietCaloriesChartContainer);
+        const dietCaloriesCanvas = await html2canvas(dietCaloriesChartContainer, {
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
         const dietCaloriesImgData = dietCaloriesCanvas.toDataURL("image/png");
         
         // Add the chart to PDF
         pdf.addImage(dietCaloriesImgData, "PNG", margin, currentY, contentWidth / 2 - 10, 100);
         
+        // Clean up
+        dietCaloriesChartRoot.unmount();
+        document.body.removeChild(dietCaloriesChartContainer);
+        
         // Create a temporary container for the macronutrients chart
         const macrosChartContainer = document.createElement('div');
         macrosChartContainer.style.width = '400px';
         macrosChartContainer.style.height = '250px';
+        macrosChartContainer.style.position = 'absolute';
+        macrosChartContainer.style.left = '-9999px';
         document.body.appendChild(macrosChartContainer);
         
         // Create and render the macronutrients chart
@@ -426,18 +475,23 @@ export default function ProgressPage() {
         );
         
         // Wait for the chart to render
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Convert the chart to canvas
-        const macrosCanvas = await html2canvas(macrosChartContainer);
+        const macrosCanvas = await html2canvas(macrosChartContainer, {
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
         const macrosImgData = macrosCanvas.toDataURL("image/png");
         
         // Add the chart to PDF
         pdf.addImage(macrosImgData, "PNG", margin + contentWidth / 2 + 10, currentY, contentWidth / 2 - 10, 100);
         
         // Clean up
-        dietCaloriesChartRoot.unmount();
         macrosChartRoot.unmount();
+        document.body.removeChild(macrosChartContainer);
       }
 
       // Add summary statistics
