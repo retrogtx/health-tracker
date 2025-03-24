@@ -186,7 +186,6 @@ export default function ProgressPage() {
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 20;
       const contentWidth = pageWidth - (margin * 2);
-      const contentHeight = pageHeight - (margin * 2);
 
       // Add header
       pdf.setFontSize(24);
