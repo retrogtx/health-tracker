@@ -57,6 +57,13 @@ interface DietLog {
   fats: number;
 }
 
+interface HealthSuggestion {
+  id: string;
+  suggestionType: string;
+  personalisedSuggestion: string;
+  dateIssued: string;
+}
+
 const EmptyState = ({ 
   title, 
   description, 
@@ -88,6 +95,7 @@ export default function ProgressPage() {
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [dietLogs, setDietLogs] = useState<DietLog[]>([]);
+  const [healthSuggestions, setHealthSuggestions] = useState<HealthSuggestion[]>([]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -99,28 +107,31 @@ export default function ProgressPage() {
 
     async function fetchData() {
       try {
-        const [metricsRes, workoutRes, dietRes] = await Promise.all([
+        const [metricsRes, workoutRes, dietRes, suggestionsRes] = await Promise.all([
           fetch('/api/health-metrics'),
           fetch('/api/workout-log'),
           fetch('/api/diet-log'),
+          fetch('/api/health-suggestions'),
         ]);
 
-        if (!metricsRes.ok || !workoutRes.ok || !dietRes.ok) {
+        if (!metricsRes.ok || !workoutRes.ok || !dietRes.ok || !suggestionsRes.ok) {
           if (metricsRes.status === 404 || workoutRes.status === 404 || dietRes.status === 404) {
             toast.info("No health data found. Start by adding some health metrics, workouts, or diet logs!");
             setHealthMetrics([]);
             setWorkoutLogs([]);
             setDietLogs([]);
+            setHealthSuggestions([]);
             setIsLoading(false);
             return;
           }
           throw new Error("Failed to fetch data");
         }
 
-        const [metricsData, workoutData, dietData] = await Promise.all([
+        const [metricsData, workoutData, dietData, suggestionsData] = await Promise.all([
           metricsRes.json(),
           workoutRes.json(),
           dietRes.json(),
+          suggestionsRes.json(),
         ]);
 
         // Check if any of the data arrays are empty and show specific messages
@@ -133,9 +144,10 @@ export default function ProgressPage() {
         setHealthMetrics(metricsData || []);
         setWorkoutLogs(workoutData || []);
         setDietLogs(dietData || []);
+        setHealthSuggestions(suggestionsData || []);
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Failed to load health data. Please try again later.");
+        toast.error("Failed to load health data");
       } finally {
         setIsLoading(false);
       }
@@ -194,7 +206,7 @@ export default function ProgressPage() {
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 15;
       const contentWidth = pageWidth - (margin * 2);
-      
+
       let currentY = margin;
 
       // Helper function to add a new page
@@ -452,292 +464,334 @@ export default function ProgressPage() {
         currentY += 8;
       }
 
-      // Add charts in small size at the end of the PDF
-      checkForNewPage(50);
-      pdf.setFontSize(14);
-      pdf.setFont(undefined, 'bold');
-      pdf.text("Visual Data Summary", margin, currentY);
-      currentY += 8;
-      pdf.setLineWidth(0.5);
-      pdf.line(margin, currentY, margin + 60, currentY);
-      currentY += 15;
-      
-      // Helper function to create and add charts to PDF
-      const addChartToPDF = async (
-        data: any[], 
-        dataKey: string, 
-        title: string, 
-        chartType: 'line' | 'bar',
-        dateKey: string,
-        x: number,
-        y: number,
-        width: number,
-        height: number
-      ) => {
-        // Create a temporary container for the chart
-        const chartContainer = document.createElement('div');
-        chartContainer.style.width = '400px';
-        chartContainer.style.height = '250px';
-        chartContainer.style.position = 'absolute';
-        chartContainer.style.left = '-9999px';
-        document.body.appendChild(chartContainer);
+      // Add Health Suggestions section
+      if (healthSuggestions.length > 0 || healthMetrics.length > 0 || workoutLogs.length > 0 || dietLogs.length > 0) {
+        // Add a new page for suggestions
+        pdf.addPage();
+        currentY = margin;
+
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.text("Health Suggestions", margin, currentY);
+        currentY += 8;
+        pdf.setLineWidth(0.5);
+        pdf.line(margin, currentY, margin + 50, currentY);
+        currentY += 10;
+
+        pdf.setFontSize(11);
+        pdf.setFont(undefined, 'normal');
+
+        // First add suggestions from the database
+        if (healthSuggestions.length > 0) {
+          pdf.setFont(undefined, 'bold');
+          pdf.text("Personalized Suggestions:", margin, currentY);
+          currentY += 8;
+          pdf.setFont(undefined, 'normal');
+
+          healthSuggestions.forEach(suggestion => {
+            if (checkForNewPage(25)) {
+              currentY = margin + 10;
+            }
+            
+            // Add bullet point and suggestion type on its own line
+            pdf.setFont(undefined, 'bold');
+            pdf.text(`• ${suggestion.suggestionType}:`, margin, currentY);
+            currentY += 6; // Move to next line for the suggestion content
+            pdf.setFont(undefined, 'normal');
+            
+            // Word wrap the suggestion text with proper indentation
+            const words = suggestion.personalisedSuggestion.split(" ");
+            let line = "";
+            let lineY = currentY;
+            
+            words.forEach(word => {
+              const testLine = line + word + " ";
+              const testWidth = pdf.getStringUnitWidth(testLine) * 11 / pdf.internal.scaleFactor;
+              
+              if (testWidth > contentWidth - 20) {
+                pdf.text(line, margin + 10, lineY); // Increased indentation
+                line = word + " ";
+                lineY += 6;
+                
+                if (lineY > pageHeight - margin) {
+                  addNewPage();
+                  lineY = margin + 10;
+                }
+              } else {
+                line = testLine;
+              }
+            });
+            
+            if (line.trim().length > 0) {
+              pdf.text(line, margin + 10, lineY); // Increased indentation
+              currentY = lineY + 10; // Add more spacing after each suggestion
+            } else {
+              currentY = lineY + 4; // Still add some spacing if the line is empty
+            }
+          });
+          
+          currentY += 10;
+        }
+
+        // Then add auto-generated suggestions if needed
+        if (healthMetrics.length > 0 || workoutLogs.length > 0 || dietLogs.length > 0) {
+          pdf.setFont(undefined, 'bold');
+          pdf.text("Additional Recommendations:", margin, currentY);
+          currentY += 8;
+          pdf.setFont(undefined, 'normal');
+
+          const autoSuggestions = generateHealthSuggestions(healthMetrics, workoutLogs, dietLogs);
+          autoSuggestions.forEach(suggestion => {
+            if (checkForNewPage(20)) {
+              currentY = margin + 10;
+            }
+            
+            // Add bullet point
+            pdf.text("•", margin, currentY);
+            
+            // Word wrap the suggestion text
+            const words = suggestion.split(" ");
+            let line = "";
+            let lineY = currentY;
+            
+            words.forEach(word => {
+              const testLine = line + word + " ";
+              const testWidth = pdf.getStringUnitWidth(testLine) * 11 / pdf.internal.scaleFactor;
+              
+              if (testWidth > contentWidth - 20) {
+                pdf.text(line, margin + 15, lineY);
+                line = word + " ";
+                lineY += 6;
+                
+                if (lineY > pageHeight - margin) {
+                  addNewPage();
+                  lineY = margin + 10;
+                }
+              } else {
+                line = testLine;
+              }
+            });
+            
+            if (line.trim().length > 0) {
+              pdf.text(line, margin + 15, lineY);
+              currentY = lineY + 10;
+            }
+          });
+        }
+      }
+
+      // Add charts with proper spacing
+      if (healthMetrics.length > 0 || workoutLogs.length > 0 || dietLogs.length > 0) {
+        // Add a new page for charts
+        pdf.addPage();
+        currentY = margin;
         
-        // Create and render the chart
-        const chartRoot = ReactDOM.createRoot(chartContainer);
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.text("Visual Data Summary", margin, currentY);
+        currentY += 8;
+        pdf.setLineWidth(0.5);
+        pdf.line(margin, currentY, margin + 60, currentY);
+        currentY += 15;
+
+        // Calculate dimensions for charts (2 per row)
+        const chartWidth = contentWidth / 2 - 10;
+        const chartHeight = 60; // Reduced height
+        let chartY = currentY;
         
-        if (chartType === 'line') {
-          chartRoot.render(
+        // Add Health Metrics Charts
+        if (healthMetrics.length > 0) {
+          const promises = [];
+          
+          // Weight and BMI charts
+          promises.push(
+            addChartToPDF(
+              healthMetrics,
+              "weight",
+              "Weight Tracking",
+              "line",
+              "dateRecorded",
+              margin,
+              chartY,
+              chartWidth,
+              chartHeight,
+              pdf
+            )
+          );
+          
+          promises.push(
+            addChartToPDF(
+              healthMetrics,
+              "bmi",
+              "BMI History",
+              "line",
+              "dateRecorded",
+              margin + chartWidth + 20,
+              chartY,
+              chartWidth,
+              chartHeight,
+              pdf
+            )
+          );
+          
+          await Promise.all(promises);
+          chartY += chartHeight + 30; // Increased spacing between rows
+          
+          // Heart Rate and Sleep Hours charts
+          if (checkForNewPage(chartHeight + 40)) {
+            chartY = margin;
+          }
+          
+          promises.length = 0;
+          
+          promises.push(
+            addChartToPDF(
+              healthMetrics,
+              "heartRate",
+              "Heart Rate",
+              "line",
+              "dateRecorded",
+              margin,
+              chartY,
+              chartWidth,
+              chartHeight,
+              pdf
+            )
+          );
+          
+          promises.push(
+            addChartToPDF(
+              healthMetrics,
+              "sleepHours",
+              "Sleep Hours",
+              "line",
+              "dateRecorded",
+              margin + chartWidth + 20,
+              chartY,
+              chartWidth,
+              chartHeight,
+              pdf
+            )
+          );
+          
+          await Promise.all(promises);
+          chartY += chartHeight + 30;
+        }
+        
+        // Add Workout Charts
+        if (workoutLogs.length > 0) {
+          if (checkForNewPage(chartHeight + 40)) {
+            chartY = margin;
+          }
+          
+          const promises = [];
+          
+          promises.push(
+            addChartToPDF(
+              workoutLogs,
+              "duration",
+              "Workout Duration",
+              "bar",
+              "dateLogged",
+              margin,
+              chartY,
+              chartWidth,
+              chartHeight,
+              pdf
+            )
+          );
+          
+          promises.push(
+            addChartToPDF(
+              workoutLogs,
+              "caloriesBurned",
+              "Calories Burned",
+              "bar",
+              "dateLogged",
+              margin + chartWidth + 20,
+              chartY,
+              chartWidth,
+              chartHeight,
+              pdf
+            )
+          );
+          
+          await Promise.all(promises);
+          chartY += chartHeight + 30;
+        }
+        
+        // Add Diet Charts
+        if (dietLogs.length > 0) {
+          if (checkForNewPage(chartHeight + 40)) {
+            chartY = margin;
+          }
+          
+          const promises = [];
+          
+          promises.push(
+            addChartToPDF(
+              dietLogs,
+              "calories",
+              "Calorie Intake",
+              "line",
+              "dateLogged",
+              margin,
+              chartY,
+              chartWidth,
+              chartHeight,
+              pdf
+            )
+          );
+          
+          // Create macronutrients chart
+          const macroChartContainer = document.createElement('div');
+          macroChartContainer.style.width = '400px';
+          macroChartContainer.style.height = '250px';
+          macroChartContainer.style.position = 'absolute';
+          macroChartContainer.style.left = '-9999px';
+          document.body.appendChild(macroChartContainer);
+          
+          const macroChartRoot = ReactDOM.createRoot(macroChartContainer);
+          macroChartRoot.render(
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data}>
+              <LineChart data={dietLogs}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
-                  dataKey={dateKey} 
+                  dataKey="dateLogged" 
                   tickFormatter={(date) => format(new Date(date), "MMM d")}
                 />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey={dataKey} stroke="#8884d8" />
+                <Line type="monotone" dataKey="protein" stroke="#8884d8" name="Protein" />
+                <Line type="monotone" dataKey="carbs" stroke="#82ca9d" name="Carbs" />
+                <Line type="monotone" dataKey="fats" stroke="#ffc658" name="Fats" />
               </LineChart>
             </ResponsiveContainer>
           );
-        } else {
-          chartRoot.render(
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey={dateKey} 
-                  tickFormatter={(date) => format(new Date(date), "MMM d")}
-                />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey={dataKey} fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          );
+          
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          const macroCanvas = await html2canvas(macroChartContainer, {
+            useCORS: true,
+            scale: 2,
+            logging: false,
+            backgroundColor: '#ffffff'
+          });
+          
+          const macroImgData = macroCanvas.toDataURL("image/png");
+          
+          pdf.setFontSize(11);
+          pdf.setFont(undefined, 'bold');
+          pdf.text("Macronutrients", margin + chartWidth + 20, chartY - 5);
+          
+          pdf.addImage(macroImgData, "PNG", margin + chartWidth + 20, chartY, chartWidth, chartHeight);
+          
+          macroChartRoot.unmount();
+          document.body.removeChild(macroChartContainer);
+          
+          await Promise.all(promises);
+          chartY += chartHeight + 30;
         }
-        
-        // Wait for the chart to render
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Convert the chart to canvas
-        const canvas = await html2canvas(chartContainer, {
-          useCORS: true,
-          scale: 2,
-          logging: false,
-          backgroundColor: '#ffffff'
-        });
-        
-        const imgData = canvas.toDataURL("image/png");
-        
-        // Add title
-        pdf.setFontSize(11);
-        pdf.setFont(undefined, 'bold');
-        pdf.text(title, x, y - 5);
-        
-        // Add the chart to PDF
-        pdf.addImage(imgData, "PNG", x, y, width, height);
-        
-        // Clean up
-        chartRoot.unmount();
-        document.body.removeChild(chartContainer);
-      };
-      
-      // Calculate dimensions for small charts (2 per row)
-      const chartWidth = contentWidth / 2 - 10;
-      const chartHeight = 70;
-      let chartY = currentY;
-      
-      // Add Health Metrics Charts
-      if (healthMetrics.length > 0) {
-        const promises = [];
-        
-        // Weight chart
-        promises.push(
-          addChartToPDF(
-            healthMetrics,
-            "weight",
-            "Weight Tracking",
-            "line",
-            "dateRecorded",
-            margin,
-            chartY,
-            chartWidth,
-            chartHeight
-          )
-        );
-        
-        // BMI chart
-        promises.push(
-          addChartToPDF(
-            healthMetrics,
-            "bmi",
-            "BMI History",
-            "line",
-            "dateRecorded",
-            margin + chartWidth + 20,
-            chartY,
-            chartWidth,
-            chartHeight
-          )
-        );
-        
-        await Promise.all(promises);
-        chartY += chartHeight + 25;
-        
-        // Heart Rate chart
-        if (checkForNewPage(chartHeight + 30)) {
-          chartY = margin;
-        }
-        
-        promises.length = 0;
-        
-        promises.push(
-          addChartToPDF(
-            healthMetrics,
-            "heartRate",
-            "Heart Rate",
-            "line",
-            "dateRecorded",
-            margin,
-            chartY,
-            chartWidth,
-            chartHeight
-          )
-        );
-        
-        // Sleep Hours chart
-        promises.push(
-          addChartToPDF(
-            healthMetrics,
-            "sleepHours",
-            "Sleep Hours",
-            "line",
-            "dateRecorded",
-            margin + chartWidth + 20,
-            chartY,
-            chartWidth,
-            chartHeight
-          )
-        );
-        
-        await Promise.all(promises);
-        chartY += chartHeight + 25;
-      }
-      
-      // Add Workout Charts
-      if (workoutLogs.length > 0) {
-        if (checkForNewPage(chartHeight + 30)) {
-          chartY = margin;
-        }
-        
-        const promises = [];
-        
-        // Duration chart
-        promises.push(
-          addChartToPDF(
-            workoutLogs,
-            "duration",
-            "Workout Duration",
-            "bar",
-            "dateLogged",
-            margin,
-            chartY,
-            chartWidth,
-            chartHeight
-          )
-        );
-        
-        // Calories Burned chart
-        promises.push(
-          addChartToPDF(
-            workoutLogs,
-            "caloriesBurned",
-            "Calories Burned",
-            "bar",
-            "dateLogged",
-            margin + chartWidth + 20,
-            chartY,
-            chartWidth,
-            chartHeight
-          )
-        );
-        
-        await Promise.all(promises);
-        chartY += chartHeight + 25;
-      }
-      
-      // Add Diet Charts
-      if (dietLogs.length > 0) {
-        if (checkForNewPage(chartHeight + 30)) {
-          chartY = margin;
-        }
-        
-        const promises = [];
-        
-        // Calorie Intake chart
-        promises.push(
-          addChartToPDF(
-            dietLogs,
-            "calories",
-            "Calorie Intake",
-            "line",
-            "dateLogged",
-            margin,
-            chartY,
-            chartWidth,
-            chartHeight
-          )
-        );
-        
-        // Create macronutrients chart (multi-line)
-        const macroChartContainer = document.createElement('div');
-        macroChartContainer.style.width = '400px';
-        macroChartContainer.style.height = '250px';
-        macroChartContainer.style.position = 'absolute';
-        macroChartContainer.style.left = '-9999px';
-        document.body.appendChild(macroChartContainer);
-        
-        const macroChartRoot = ReactDOM.createRoot(macroChartContainer);
-        macroChartRoot.render(
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={dietLogs}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="dateLogged" 
-                tickFormatter={(date) => format(new Date(date), "MMM d")}
-              />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="protein" stroke="#8884d8" />
-              <Line type="monotone" dataKey="carbs" stroke="#82ca9d" />
-              <Line type="monotone" dataKey="fats" stroke="#ffc658" />
-            </LineChart>
-          </ResponsiveContainer>
-        );
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        const macroCanvas = await html2canvas(macroChartContainer, {
-          useCORS: true,
-          scale: 2,
-          logging: false,
-          backgroundColor: '#ffffff'
-        });
-        
-        const macroImgData = macroCanvas.toDataURL("image/png");
-        
-        pdf.setFontSize(11);
-        pdf.setFont(undefined, 'bold');
-        pdf.text("Macronutrients", margin + chartWidth + 20, chartY - 5);
-        
-        pdf.addImage(macroImgData, "PNG", margin + chartWidth + 20, chartY, chartWidth, chartHeight);
-        
-        macroChartRoot.unmount();
-        document.body.removeChild(macroChartContainer);
-        
-        await Promise.all(promises);
-        chartY += chartHeight + 25;
       }
 
       // Save the PDF
@@ -752,6 +806,87 @@ export default function ProgressPage() {
       console.error("Error exporting PDF:", error);
       toast.error("Failed to export PDF");
     }
+  };
+
+  const addChartToPDF = async (
+    data: any[], 
+    dataKey: string, 
+    title: string, 
+    chartType: 'line' | 'bar',
+    dateKey: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    pdf: any
+  ) => {
+    // Create a temporary container for the chart
+    const chartContainer = document.createElement('div');
+    chartContainer.style.width = '400px';
+    chartContainer.style.height = '250px';
+    chartContainer.style.position = 'absolute';
+    chartContainer.style.left = '-9999px';
+    document.body.appendChild(chartContainer);
+    
+    // Create and render the chart
+    const chartRoot = ReactDOM.createRoot(chartContainer);
+    
+    if (chartType === 'line') {
+      chartRoot.render(
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey={dateKey} 
+              tickFormatter={(date) => format(new Date(date), "MMM d")}
+            />
+            <YAxis />
+            <Tooltip />
+            <Line type="monotone" dataKey={dataKey} stroke="#8884d8" name={dataKey} />
+          </LineChart>
+        </ResponsiveContainer>
+      );
+    } else {
+      chartRoot.render(
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey={dateKey} 
+              tickFormatter={(date) => format(new Date(date), "MMM d")}
+            />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey={dataKey} fill="#8884d8" name={dataKey} />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+    
+    // Wait for the chart to render
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Convert the chart to canvas
+    const canvas = await html2canvas(chartContainer, {
+      useCORS: true,
+      scale: 2,
+      logging: false,
+      backgroundColor: '#ffffff'
+    });
+    
+    const imgData = canvas.toDataURL("image/png");
+    
+    // Add title
+    pdf.setFontSize(11);
+    pdf.setFont(undefined, 'bold');
+    pdf.text(title, x, y - 5);
+    
+    // Add the chart to PDF
+    pdf.addImage(imgData, "PNG", x, y, width, height);
+    
+    // Clean up
+    chartRoot.unmount();
+    document.body.removeChild(chartContainer);
   };
 
   const navigateToAdd = (type: string) => {
@@ -948,6 +1083,78 @@ export default function ProgressPage() {
         </Card>
       </div>
     );
+  };
+
+  const generateHealthSuggestions = (
+    healthMetrics: HealthMetric[],
+    workoutLogs: WorkoutLog[],
+    dietLogs: DietLog[]
+  ) => {
+    const suggestions: string[] = [];
+
+    // Health Metrics Suggestions
+    if (healthMetrics.length > 0) {
+      const latestMetrics = healthMetrics[healthMetrics.length - 1];
+      const avgSleepHours = healthMetrics.reduce((acc, curr) => acc + (curr.sleepHours || 0), 0) / healthMetrics.length;
+
+      if (latestMetrics.bmi > 25) {
+        suggestions.push("Your BMI indicates you're above the healthy weight range. Consider increasing physical activity and maintaining a balanced diet.");
+      } else if (latestMetrics.bmi < 18.5) {
+        suggestions.push("Your BMI indicates you're below the healthy weight range. Consider consulting a nutritionist for a proper diet plan.");
+      }
+
+      if (avgSleepHours < 7) {
+        suggestions.push("You're averaging less than 7 hours of sleep. Aim for 7-9 hours of sleep per night for optimal health.");
+      }
+
+      if (latestMetrics.heartRate > 100) {
+        suggestions.push("Your resting heart rate is elevated. Consider stress-reduction techniques and regular cardiovascular exercise.");
+      }
+    }
+
+    // Workout Suggestions
+    if (workoutLogs.length > 0) {
+      const last7DaysWorkouts = workoutLogs.filter(log => 
+        new Date(log.dateLogged) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      );
+
+      if (last7DaysWorkouts.length < 3) {
+        suggestions.push("Try to maintain at least 3 workouts per week for optimal fitness benefits.");
+      }
+
+      const workoutTypes = new Set(workoutLogs.map(log => log.workoutType));
+      if (workoutTypes.size < 3) {
+        suggestions.push("Consider diversifying your workout routine to include a mix of cardio, strength training, and flexibility exercises.");
+      }
+    } else {
+      suggestions.push("Start incorporating regular physical activity into your routine. Begin with 30 minutes of moderate exercise 3 times a week.");
+    }
+
+    // Diet Suggestions
+    if (dietLogs.length > 0) {
+      const avgCalories = dietLogs.reduce((acc, curr) => acc + (curr.calories || 0), 0) / dietLogs.length;
+      const avgProtein = dietLogs.reduce((acc, curr) => acc + (curr.protein || 0), 0) / dietLogs.length;
+      const avgCarbs = dietLogs.reduce((acc, curr) => acc + (curr.carbs || 0), 0) / dietLogs.length;
+      const avgFats = dietLogs.reduce((acc, curr) => acc + (curr.fats || 0), 0) / dietLogs.length;
+
+      if (avgCalories > 2500) {
+        suggestions.push("Your average daily calorie intake is high. Consider reducing portion sizes and choosing lower-calorie alternatives.");
+      }
+
+      if (avgProtein < 50) {
+        suggestions.push("Your protein intake appears to be low. Include more lean meats, fish, legumes, or protein supplements in your diet.");
+      }
+
+      const totalMacros = avgProtein + avgCarbs + avgFats;
+      const proteinPercentage = (avgProtein * 4 / (totalMacros * 4)) * 100;
+      if (proteinPercentage < 20) {
+        suggestions.push("Consider increasing your protein intake to support muscle maintenance and recovery.");
+      }
+    } else {
+      suggestions.push("Start tracking your daily food intake to better understand your nutrition patterns and make informed dietary choices.");
+    }
+
+    return suggestions;
   };
 
   if (isLoading) {
